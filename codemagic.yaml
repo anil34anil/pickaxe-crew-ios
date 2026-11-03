@@ -15,7 +15,7 @@ workflows:
         bundle_identifier: com.idlemaden.game
       vars:
         # App Store Connect > Uygulamam > Genel Bilgi > Apple Kimliği (sayı). Uygulama kaydı yapılınca doldurulur.
-        APP_STORE_APPLE_ID: "0000000000"
+        APP_STORE_APPLE_ID: "6829674254"
         BUNDLE_ID: com.idlemaden.game
         XCODE_SCHEME: Unity-iPhone
         # PROJECT_ZIP_URL: Codemagic panelinde GİZLİ değişken olarak eklenir (Xcode projesinin geçici indirme adresi).
