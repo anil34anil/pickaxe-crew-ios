@@ -8,6 +8,8 @@ workflows:
     integrations:
       app_store_connect: Codemagic-API
     environment:
+      groups:
+        - ios_gizli   # içinde PROJECT_ZIP_URL (Secure) değişkeni olan değişken grubu
       xcode: latest
       cocoapods: default
       ios_signing:
