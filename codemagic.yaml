@@ -1,0 +1,51 @@
+# Pickaxe Crew iOS: Windows'ta Unity'den üretilen Xcode projesini (zip) indirir, imzalar, TestFlight'a yükler.
+# Codemagic'te yapılacak ayarlar (YAYIN/ios/OKU.md): App Store Connect entegrasyonu, APP_STORE_APPLE_ID ve PROJECT_ZIP_URL.
+workflows:
+  ios-testflight:
+    name: Pickaxe Crew iOS
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Codemagic-API
+    environment:
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.idlemaden.game
+      vars:
+        # App Store Connect > Uygulamam > Genel Bilgi > Apple Kimliği (sayı). Uygulama kaydı yapılınca doldurulur.
+        APP_STORE_APPLE_ID: "0000000000"
+        BUNDLE_ID: com.idlemaden.game
+        XCODE_SCHEME: Unity-iPhone
+        # PROJECT_ZIP_URL: Codemagic panelinde GİZLİ değişken olarak eklenir (Xcode projesinin geçici indirme adresi).
+    scripts:
+      - name: Xcode projesini indir
+        script: |
+          curl -fL --retry 3 "$PROJECT_ZIP_URL" -o proje.zip
+          mkdir ios && unzip -q proje.zip -d ios
+      - name: CocoaPods
+        script: |
+          cd ios
+          pod install
+      - name: İmza profillerini uygula
+        script: |
+          cd ios
+          xcode-project use-profiles
+      - name: Yapı numarasını TestFlight'tan bir artır
+        script: |
+          cd ios
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          case "$LATEST" in ''|*[!0-9]*) LATEST=0 ;; esac
+          agvtool new-version -all $((LATEST + 1))
+      - name: IPA üret
+        script: |
+          cd ios
+          xcode-project build-ipa --workspace "Unity-iPhone.xcworkspace" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - ios/build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
